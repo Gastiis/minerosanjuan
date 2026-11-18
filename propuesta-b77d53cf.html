@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex, nofollow">
+<title>Minero San Juan para Mariano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700&amp;family=Chivo+Mono:wght@400;500&amp;family=Saira+Extra+Condensed:wght@700;800&amp;display=swap">
+<style>
+:root{
+  /* Plan: misma familia visual que el verificador (cobre sobre papel), en "láminas" que se leen bajando.
+     Una idea fuerte por lámina, el número grande en cobre, todo lo demás quieto. */
+  color-scheme:light;
+  --papel:#E9ECE7; --hoja:#F8F9F6; --tinta:#18212B; --tinta-2:#4A5663; --linea:#C2C9C3;
+  --cobre:#A44E17; --cobre-suave:#F1DFD0; --sobre-cobre:#FFFFFF;
+  --ok:#1D6F42; --gris:#7C8792;
+  --display:"Saira Extra Condensed","Arial Narrow",Impact,sans-serif;
+  --cuerpo:"Chivo","Helvetica Neue",Arial,sans-serif;
+  --mono:"Chivo Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+  --papel:#11161B; --hoja:#1A2129; --tinta:#E9EDEA; --tinta-2:#A7B2BC; --linea:#36414C;
+  --cobre:#E59A62; --cobre-suave:#3B2B1F; --sobre-cobre:#1B120A; --ok:#74D29C; --gris:#8D98A3;}}
+:root[data-theme="dark"]{color-scheme:dark;
+  --papel:#11161B; --hoja:#1A2129; --tinta:#E9EDEA; --tinta-2:#A7B2BC; --linea:#36414C;
+  --cobre:#E59A62; --cobre-suave:#3B2B1F; --sobre-cobre:#1B120A; --ok:#74D29C; --gris:#8D98A3;}
+
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--papel);color:var(--tinta);font-family:var(--cuerpo);font-size:1.0625rem;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-wrap:break-word}
+body::before{content:"";display:block;height:6px;background:var(--cobre)}
+a{color:var(--cobre);text-underline-offset:.15em}
+a:focus-visible{outline:3px solid var(--tinta);outline-offset:2px}
+.pagina{max-width:52rem;margin:0 auto;padding:0 1rem 4rem;display:flex;flex-direction:column;gap:1.25rem}
+.rotulo{font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;margin:0;color:var(--tinta-2)}
+.tira{display:flex;justify-content:space-between;gap:1rem;padding:.875rem 0;border-bottom:1px solid var(--linea)}
+
+.lamina{background:var(--hoja);border:1px solid var(--linea);border-radius:4px;padding:clamp(1.25rem,4vw,2.5rem);display:flex;flex-direction:column;gap:1rem;min-width:0}
+.lamina > p{margin:0;max-width:40rem}
+.num{color:var(--cobre)}
+h1,h2{font-family:var(--display);font-weight:800;text-transform:uppercase;margin:0;line-height:.92;text-wrap:balance}
+h1{font-size:clamp(2.75rem,10vw,5rem)}
+h2{font-size:clamp(2rem,6.5vw,3rem)}
+h1 em,h2 em{font-style:normal;color:var(--cobre)}
+h3{font-size:1.0625rem;margin:0;font-weight:700}
+.portada{background:var(--tinta);color:var(--hoja);border-color:var(--tinta)}
+.portada .rotulo{color:#E59A62}
+.portada h1 em{color:#E59A62}
+.portada p{color:#D5DBE0}
+.firma{font-family:var(--mono);font-size:.8125rem;color:#AEB8C1 !important}
+
+.cifras{display:grid;gap:1.25rem;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr))}
+.cifra{border-top:3px solid var(--tinta);padding-top:.625rem;display:flex;flex-direction:column;gap:.375rem}
+.cifra b{font-family:var(--display);font-weight:800;font-size:2.75rem;line-height:.9;color:var(--cobre);font-variant-numeric:tabular-nums}
+.cifra span{font-size:.9375rem}
+.cifra small{font-family:var(--mono);font-size:.6875rem;color:var(--tinta-2);letter-spacing:.04em}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;align-self:flex-start;font-weight:700;text-decoration:none;min-height:3rem;padding:.75rem 1.25rem;border-radius:3px;background:var(--cobre);color:var(--sobre-cobre)}
+.lista{margin:0;padding-left:1.25rem;display:flex;flex-direction:column;gap:.375rem}
+
+.pasos{list-style:none;margin:0;padding:0;display:grid;gap:.5rem;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr));counter-reset:p}
+.pasos li{counter-increment:p;background:var(--papel);border:1px solid var(--linea);border-radius:3px;padding:.75rem;display:flex;flex-direction:column;gap:.25rem;font-size:.9375rem}
+.pasos li::before{content:counter(p);font-family:var(--display);font-weight:800;font-size:1.75rem;line-height:1;color:var(--cobre)}
+.pasos li.clave{border-color:var(--cobre);box-shadow:inset 0 0 0 1px var(--cobre)}
+
+.tres{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr))}
+.caja{border:1px solid var(--linea);border-radius:3px;padding:1rem;display:flex;flex-direction:column;gap:.375rem;background:var(--papel)}
+.caja p{margin:0;font-size:.9375rem}
+.caja .precio{font-family:var(--mono);font-size:.8125rem;color:var(--cobre)}
+
+.tabla{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9375rem;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:.5rem .625rem;border-bottom:1px solid var(--linea);vertical-align:top}
+th{font-family:var(--mono);font-size:.75rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--tinta-2)}
+td.n,th.n{text-align:right;white-space:nowrap}
+tr.total td{font-weight:700;border-bottom:2px solid var(--tinta)}
+
+.grafico{width:100%;height:auto;display:block}
+.leyenda{display:flex;flex-wrap:wrap;gap:.25rem 1.25rem;font-size:.875rem;color:var(--tinta-2);margin:0}
+.leyenda i{display:inline-block;width:1.25rem;height:3px;vertical-align:middle;margin-right:.375rem}
+.nota{font-size:.875rem;color:var(--tinta-2);margin:0}
+.destacado{background:var(--cobre-suave);border-left:4px solid var(--cobre);padding:.875rem 1rem;border-radius:2px;margin:0}
+
+.pie{font-size:.875rem;color:var(--tinta-2);display:flex;flex-direction:column;gap:.5rem;padding-top:1rem;border-top:1px solid var(--linea)}
+.pie ul{margin:0;padding-left:1.125rem}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="tira"><span class="rotulo">Minero San Juan</span><span class="rotulo">Para Mariano · 18 nov 2026</span></header>
+
+<section class="lamina portada">
+  <p class="rotulo">Una propuesta de Gabriel Gioja</p>
+  <h1>Las pymes quieren venderle a la minería. <em>Les decimos qué les falta.</em></h1>
+  <p>Minero San Juan le dice gratis a una pyme qué le falta para ser proveedora minera, y cobra a quien se lo resuelve: bancos, aseguradoras, contadores, consultoras. La página ya está funcionando. Te quiero adentro como socio.</p>
+  <p class="firma">minerosanjuan.com</p>
+</section>
+
+<section class="lamina">
+  <p class="rotulo"><span class="num">01</span> · La oportunidad</p>
+  <h2>Una ley nueva convierte un trámite en <em>la llave</em> para vender</h2>
+  <div class="cifras">
+    <div class="cifra"><b>60 %</b><span>de compras locales es la meta que la Ley 2827-M les fija a las mineras. Solo cuentan los proveedores inscriptos en el REPROMIN.</span><small>Ley 2827-M</small></div>
+    <div class="cifra"><b>+500</b><span>pymes se anotaron a la ronda de negocios de Vicuña en julio. Muchas quedaron afuera por papeles.</span><small>Tiempo de San Juan</small></div>
+    <div class="cifra"><b>~2.800</b><span>empresas proveedoras locales hay hoy en San Juan. Es nuestro público.</span><small>Mesa del Cobre, nov 2026</small></div>
+    <div class="cifra"><b>USD 14.000 M</b><span>por año en compras de bienes y servicios, cuando los seis proyectos de cobre estén a pleno.</span><small>Mesa del Cobre · proyección</small></div>
+  </div>
+  <p>El registro oficial (REPROMIN) apunta a abrir a fin de diciembre. Cuando abra, miles de empresas van a preguntarse lo mismo: <strong>¿cumplo o no cumplo?</strong> Queremos ser la respuesta.</p>
+</section>
+
+<section class="lamina">
+  <p class="rotulo"><span class="num">02</span> · El producto</p>
+  <h2>El verificador <em>ya está andando</em></h2>
+  <p>Veinte preguntas de sí o no, en cinco pasos y unos cuatro minutos. Sale con un sello (<em>Listo</em>, <em>Te falta poco</em> o <em>Todavía no</em>), la lista de pendientes en orden y el artículo de la ley que aplica. Se comparte por WhatsApp, y el mensaje lleva el link para que otro lo haga.</p>
+  <a class="btn" href="https://minerosanjuan.com" target="_blank" rel="noopener noreferrer">Probalo: minerosanjuan.com</a>
+  <p class="nota">Es un prototipo: todavía no guarda contactos. Eso llega en la próxima etapa, con el permiso de cada pyme por escrito.</p>
+</section>
+
+<section class="lamina">
+  <p class="rotulo"><span class="num">03</span> · Cómo gana plata</p>
+  <h2>La pyme no paga nunca. <em>Paga el que la deja lista.</em></h2>
+  <ol class="pasos">
+    <li>La pyme hace el verificador, gratis.</li>
+    <li>Ve qué le falta y en qué orden.</li>
+    <li>Pide ayuda y da permiso para que la contacten.</li>
+    <li class="clave"><strong>Le pasamos el contacto al aliado de ese tema.</strong></li>
+    <li>El aliado resuelve y la pyme queda lista para anotarse.</li>
+  </ol>
+  <div class="tres">
+    <div class="caja"><h3>Aliados por rubro</h3><p>Un banco o sociedad de garantía, una aseguradora, un estudio contable, una consultora de calidad. Pagan un fijo por ser el único de su rubro.</p><span class="precio">Supuesto: USD 250 por mes cada uno</span></div>
+    <div class="caja"><h3>Informes para mineras y Gobierno</h3><p>Qué les falta a los proveedores, por rubro y por departamento, sin nombres. Sirve para acercarse a la meta del 60 %.</p><span class="precio">Supuesto: USD 1.500 por informe trimestral</span></div>
+    <div class="caja"><h3>Encuentros de proveedores</h3><p>Reuniones chicas cada tres meses, con aliados y contratistas, difundidas por nuestros medios.</p><span class="precio">Supuesto: USD 4.000 de auspicio, USD 1.800 de costo</span></div>
+  </div>
+</section>
+
+<section class="lamina">
+  <p class="rotulo"><span class="num">04</span> · Flujo de fondos, 24 meses</p>
+  <h2>Pide poca plata y <em>se paga en el año</em></h2>
+  <p>En el escenario base, lo peor que pasa es que pongamos unos <strong>USD 2.000</strong> en los dos primeros meses. La caja se recupera en junio de 2027 y llega a unos <strong>USD 38.000</strong> acumulados a noviembre de 2028. Si todo rinde la mitad, la recuperación se corre a diciembre de 2027.</p>
+  <svg id="grafico" class="grafico" viewBox="0 0 760 320" role="img" aria-label="Caja acumulada en dólares, diciembre 2026 a noviembre 2028, en dos escenarios"></svg>
+  <p class="leyenda"><span><i style="background:var(--cobre)"></i>Base</span><span><i style="background:var(--gris)"></i>Conservador (todo rinde la mitad)</span></p>
+  <div class="tabla"><table>
+    <thead><tr><th>USD</th><th class="n">Año 1 base</th><th class="n">Año 2 base</th><th class="n">Año 1 conserv.</th><th class="n">Año 2 conserv.</th></tr></thead>
+    <tbody>
+      <tr><td>Ingresos</td><td class="n">20.000</td><td class="n">46.000</td><td class="n">10.000</td><td class="n">23.000</td></tr>
+      <tr><td>Costos</td><td class="n">11.280</td><td class="n">16.500</td><td class="n">10.382</td><td class="n">14.248</td></tr>
+      <tr class="total"><td>Resultado</td><td class="n">8.720</td><td class="n">29.500</td><td class="n">−382</td><td class="n">8.752</td></tr>
+    </tbody>
+  </table></div>
+  <p class="destacado"><strong>Lo que no cuenta esta cuenta:</strong> cobrar por cada contacto cuando haya volumen, las fichas destacadas del directorio y lo que suma para Gold Evolution, que le vende a las mismas mineras. Es la parte que puede hacerlo grande.</p>
+  <p class="nota"><strong>Supuestos, todos a validar con las primeras charlas:</strong> aliados 2 desde febrero, 4 desde mayo y 6 desde noviembre de 2027; informes desde agosto de 2027 (un cliente, dos desde 2028); un encuentro por trimestre desde junio de 2027. Costos: periodista verificador USD 150 y herramientas USD 80 por mes, desarrollo y abogado USD 1.500 una vez, viáticos USD 150 por mes, hosting desde junio, comisión de venta del 15 %. La difusión en nuestros medios se aporta en especie y no figura como gasto. Nada de esto está medido todavía.</p>
+</section>
+
+<section class="lamina">
+  <p class="rotulo"><span class="num">05</span> · Por qué nosotros</p>
+  <h2>Yo pongo los medios. <em>Vos ponés la minería.</em></h2>
+  <div class="tres">
+    <div class="caja"><h3>Lo que pongo yo</h3><p>Tres diarios, Telesol, dos radios y la Central de Contenidos para llegar a las pymes. La tecnología ya armada y la marca con su dominio.</p></div>
+    <div class="caja"><h3>Lo que ponés vos</h3><p>La puerta a mineras, contratistas y cámaras, y el criterio de alguien que conoce el sector por dentro. Sin eso, los aliados no nos creen.</p></div>
+    <div class="caja"><h3>Lo que ya tenemos juntos</h3><p>Con Gold Evolution ya les vamos a vender a las mismas mineras. Minero San Juan es otra razón para la misma reunión.</p></div>
+  </div>
+  <p><strong>Lo que te propongo:</strong> que seas socio a cargo de la parte comercial e institucional (aliados, mineras, encuentros). Cómo repartimos lo charlamos cara a cara.</p>
+</section>
+
+<section class="lamina">
+  <p class="rotulo"><span class="num">06</span> · Los primeros 90 días</p>
+  <h2>Probar barato <em>antes de crecer</em></h2>
+  <div class="tabla"><table>
+    <thead><tr><th>Cuándo</th><th>Qué</th><th>Está listo cuando</th></tr></thead>
+    <tbody>
+      <tr><td>Noviembre</td><td>Cinco pymes hacen el verificador y anotamos dónde se traban</td><td>Hay una lista de correcciones</td></tr>
+      <tr><td>Fin de noviembre</td><td>Tres charlas: un banco, una aseguradora, un estudio contable</td><td>Dos aceptan probar y dicen cuánto pagarían</td></tr>
+      <tr><td>Diciembre</td><td>La página guarda el contacto con permiso y lo manda por WhatsApp</td><td>Una pyme deja su dato y llega bien</td></tr>
+      <tr><td>Cuando abra el REPROMIN</td><td>Lanzamiento en los tres diarios, la radio y la tele</td><td>Entran verificaciones todas las semanas</td></tr>
+      <tr><td>Un mes después</td><td>Facturamos a los primeros aliados</td><td>Un aliado paga dos meses seguidos</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="lamina">
+  <p class="rotulo"><span class="num">07</span> · Lo que puede salir mal</p>
+  <h2>Los riesgos, <em>sin maquillaje</em></h2>
+  <ul class="lista">
+    <li><strong>Que los aliados no paguen.</strong> Lo sabemos en 60 días gastando casi nada. Si nadie paga, frenamos.</li>
+    <li><strong>Que el REPROMIN se atrase.</strong> El verificador sirve igual: ARCA, seguros y las plataformas de las mineras ya se piden hoy.</li>
+    <li><strong>Que el Gobierno o una cámara hagan su propio chequeo.</strong> Nuestra diferencia es lo que viene después: conectar con quien resuelve, con la llegada de los medios.</li>
+    <li><strong>Que una pyme sienta que vendimos sus datos.</strong> Permiso por escrito, aliado con nombre y apellido, y aviso claro de sitio independiente.</li>
+  </ul>
+</section>
+
+<section class="lamina">
+  <p class="rotulo"><span class="num">08</span> · El próximo paso</p>
+  <h2>Hacé la prueba <em>y tomemos un café</em></h2>
+  <ol class="lista">
+    <li>Hacé el verificador como si fueras una de las empresas que conocés.</li>
+    <li>Pensá tres aliados a los que les podemos tocar la puerta esta semana.</li>
+    <li>Nos juntamos y definimos roles y reparto.</li>
+  </ol>
+  <a class="btn" href="https://minerosanjuan.com" target="_blank" rel="noopener noreferrer">Ir al verificador</a>
+</section>
+
+<footer class="pie">
+  <p>Las cifras de mercado son proyecciones de terceros y el flujo de fondos es un modelo con supuestos propios, no un resultado. Montos en dólares, sin impuestos.</p>
+  <p class="rotulo">Fuentes</p>
+  <ul>
+    <li><a href="https://minio.legsanjuan.gob.ar/normasconsolidaciones/79207/LP-2827-M.pdf" target="_blank" rel="noopener noreferrer">Ley 2827-M de Desarrollo Local Minero</a></li>
+    <li><a href="https://www.tiempodesanjuan.com/mineria/record-por-vicuna-500-pymes-pelearon-por-un-lugar-en-la-ronda-de-negocios-de-san-juan_1783979103" target="_blank" rel="noopener noreferrer">Ronda de negocios de Vicuña, Tiempo de San Juan</a></li>
+    <li><a href="https://www.diariohuarpe.com/nota/el-registro-de-proveedores-mineros-estara-listo-en-diciembre-202610169550" target="_blank" rel="noopener noreferrer">Plazo del REPROMIN, Diario Huarpe</a></li>
+    <li>"La Era del Cobre Sanjuanino", Mesa del Cobre, actualizado a noviembre de 2026</li>
+  </ul>
+</footer>
+</div>
+
+<script>
+(function(){
+  var M=["Dic 26","Ene 27","Feb 27","Mar 27","Abr 27","May 27","Jun 27","Jul 27","Ago 27","Sep 27","Oct 27","Nov 27","Dic 27","Ene 28","Feb 28","Mar 28","Abr 28","May 28","Jun 28","Jul 28","Ago 28","Sep 28","Oct 28","Nov 28"];
+  var BASE=[-230,-1960,-1915,-1870,-1825,-1355,1295,1745,3470,6120,6570,8720,11795,12670,16095,19170,20045,23470,26545,27420,30845,33920,34795,38220];
+  var CONS=[-230,-1960,-2128,-2295,-2462,-2418,-2192,-2168,-1505,-1280,-1255,-380,58,295,1808,2245,2482,3995,4432,4670,6182,6620,6858,8370];
+  var svg=document.getElementById('grafico'), NS='http://www.w3.org/2000/svg';
+  var x0=64,x1=736,y0=24,y1=280, lo=-5000, hi=40000;
+  function X(i){return x0+(x1-x0)*i/(M.length-1)}
+  function Y(v){return y1-(y1-y0)*(v-lo)/(hi-lo)}
+  function el(n,a,t){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);if(t!=null)e.textContent=t;svg.appendChild(e);return e}
+  var css=getComputedStyle(document.documentElement);
+  function c(v){return css.getPropertyValue(v).trim()}
+  [-5000,0,10000,20000,30000,40000].forEach(function(v){
+    el('line',{x1:x0,x2:x1,y1:Y(v),y2:Y(v),stroke:c(v===0?'--tinta-2':'--linea'),'stroke-width':v===0?1.25:1});
+    el('text',{x:x0-8,y:Y(v)+4,'text-anchor':'end','font-size':12,fill:c('--tinta-2'),'font-family':'Chivo Mono, monospace'},(v/1000)+'k');
+  });
+  [0,6,12,18,23].forEach(function(i){el('text',{x:X(i),y:y1+24,'text-anchor':'middle','font-size':12,fill:c('--tinta-2'),'font-family':'Chivo Mono, monospace'},M[i])});
+  function linea(d,col,w){el('polyline',{points:d.map(function(v,i){return X(i)+','+Y(v)}).join(' '),fill:'none',stroke:col,'stroke-width':w,'stroke-linejoin':'round'})}
+  linea(CONS,c('--gris'),2); linea(BASE,c('--cobre'),3);
+  el('circle',{cx:X(23),cy:Y(38220),r:5,fill:c('--cobre')});
+  el('text',{x:X(23)-8,y:Y(38220)-12,'text-anchor':'end','font-size':14,'font-weight':700,fill:c('--tinta')},'USD 38.220');
+  el('text',{x:X(23)-8,y:Y(8370)-10,'text-anchor':'end','font-size':13,fill:c('--tinta-2')},'USD 8.370');
+  el('text',{x:X(1),y:Y(-1960)+18,'font-size':12,fill:c('--tinta-2')},'−1.960');
+})();
+</script>
+</body>
+</html>
