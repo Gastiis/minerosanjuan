@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Verificador de proveedor minero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;500;700&amp;family=Chivo+Mono:wght@400;500&amp;family=Saira+Extra+Condensed:wght@700;800&amp;display=swap">
+<style>
+:root{
+  /* Plan de diseño: una hoja de formulario de obra en una sola columna, pensada para el celular.
+     El único gesto fuerte es el sello del resultado; todo lo demás queda quieto.
+     Tipografías argentinas (Omnibus-Type): Saira Extra Condensed para títulos y sello,
+     Chivo para leer, Chivo Mono para rótulos y artículos de la ley. */
+  color-scheme:light;
+  --papel:#E9ECE7;
+  --hoja:#F8F9F6;
+  --tinta:#18212B;
+  --tinta-2:#4A5663;
+  --linea:#C2C9C3;
+  --cobre:#A44E17;
+  --cobre-suave:#F1DFD0;
+  --sobre-cobre:#FFFFFF;
+  --ok:#1D6F42;
+  --ok-suave:#D9ECDF;
+  --ojo:#7F5A00;
+  --ojo-suave:#F3E6BE;
+  --falta:#A8201A;
+  --falta-suave:#F6DBD8;
+  --display:"Saira Extra Condensed","Arial Narrow","Roboto Condensed",Impact,sans-serif;
+  --cuerpo:"Chivo","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --mono:"Chivo Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --papel:#11161B;
+    --hoja:#1A2129;
+    --tinta:#E9EDEA;
+    --tinta-2:#A7B2BC;
+    --linea:#36414C;
+    --cobre:#E59A62;
+    --cobre-suave:#3B2B1F;
+    --sobre-cobre:#1B120A;
+    --ok:#74D29C;
+    --ok-suave:#173A2B;
+    --ojo:#EBC66B;
+    --ojo-suave:#3C3215;
+    --falta:#F4938A;
+    --falta-suave:#451E1B;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --papel:#11161B;
+  --hoja:#1A2129;
+  --tinta:#E9EDEA;
+  --tinta-2:#A7B2BC;
+  --linea:#36414C;
+  --cobre:#E59A62;
+  --cobre-suave:#3B2B1F;
+  --sobre-cobre:#1B120A;
+  --ok:#74D29C;
+  --ok-suave:#173A2B;
+  --ojo:#EBC66B;
+  --ojo-suave:#3C3215;
+  --falta:#F4938A;
+  --falta-suave:#451E1B;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none !important}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--papel);
+  color:var(--tinta);
+  font-family:var(--cuerpo);
+  font-size:1rem;
+  line-height:1.5;
+  overflow-wrap:break-word;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{content:"";display:block;height:6px;background:var(--cobre)}
+a{color:var(--cobre);text-underline-offset:.15em}
+a:focus-visible,button:focus-visible,textarea:focus-visible{outline:3px solid var(--tinta);outline-offset:2px}
+[data-foco]:focus{outline:none}
+
+.pagina{max-width:38rem;margin:0 auto;padding:0 1rem 3rem;display:flex;flex-direction:column;gap:2.25rem}
+
+.rotulo{font-family:var(--mono);font-size:.75rem;line-height:1.4;letter-spacing:.09em;text-transform:uppercase;margin:0}
+
+.tira{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.875rem 0;border-bottom:1px solid var(--linea)}
+.marca{font-weight:500}
+.chip{color:var(--tinta-2);border:1px solid var(--linea);border-radius:999px;padding:.125rem .625rem}
+
+.hero{display:flex;flex-direction:column;gap:.875rem;margin-top:-.75rem}
+.ceja{color:var(--cobre)}
+h1{
+  font-family:var(--display);
+  font-weight:800;
+  text-transform:uppercase;
+  font-size:clamp(2.75rem,13vw,4.75rem);
+  line-height:.92;
+  letter-spacing:.005em;
+  margin:0;
+  text-wrap:balance;
+}
+h1 em{font-style:normal;color:var(--cobre)}
+.bajada{margin:0;font-size:1.0625rem;max-width:34rem}
+.datos{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:.25rem 1.25rem;color:var(--tinta-2);font-size:.9375rem}
+.datos li{display:flex;align-items:center;gap:.5rem}
+.datos li::before{content:"";width:.5rem;height:.5rem;background:var(--cobre);flex:none}
+
+/* La hoja del verificador */
+.hoja{background:var(--hoja);border:1px solid var(--linea);border-radius:4px;scroll-margin-top:.5rem;min-width:0}
+.hoja-cab{padding:1rem 1rem 1.125rem;border-bottom:1px solid var(--linea);display:flex;flex-direction:column;gap:.5rem}
+.progreso{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:.375rem}
+.progreso span{height:6px;background:var(--linea)}
+.progreso .hecho{background:var(--cobre)}
+.progreso .actual{background:var(--tinta)}
+.paso-n{color:var(--tinta-2)}
+.titulo-2{
+  font-family:var(--display);
+  font-weight:800;
+  text-transform:uppercase;
+  font-size:2.25rem;
+  line-height:.95;
+  letter-spacing:.01em;
+  margin:0;
+  text-wrap:balance;
+}
+.intro{margin:0;color:var(--tinta-2);font-size:.9375rem}
+
+.ejemplo{
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem .75rem;
+  background:var(--cobre-suave);border:1px dashed var(--cobre);border-radius:3px;
+  padding:.5rem .75rem;margin-bottom:.5rem;font-size:.9375rem;
+}
+.ejemplo p{margin:0;flex:1 1 12rem}
+
+.pregunta{padding:1.125rem 1rem;border-bottom:1px solid var(--linea);display:flex;flex-direction:column;gap:.625rem}
+.pregunta.sin{box-shadow:inset 4px 0 0 var(--falta)}
+.texto{margin:0;font-weight:500;font-size:1.0625rem;line-height:1.35}
+.num{font-family:var(--mono);font-size:.75rem;font-weight:500;color:var(--cobre);margin-right:.5rem;letter-spacing:.04em}
+.ayuda{margin:0;color:var(--tinta-2);font-size:.875rem;line-height:1.4}
+.ops{display:grid;gap:.5rem;grid-template-columns:1fr}
+.ops.cortas{grid-template-columns:repeat(auto-fit,minmax(5.5rem,1fr))}
+.op{position:relative;min-width:0}
+.op input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.op label{
+  display:flex;align-items:center;gap:.625rem;
+  min-height:3rem;height:100%;padding:.5rem .75rem;
+  border:1.5px solid var(--linea);border-radius:3px;
+  background:var(--papel);font-weight:500;line-height:1.25;cursor:pointer;
+}
+.op label::before{
+  content:"";flex:none;width:1.125rem;height:1.125rem;
+  border:1.5px solid var(--tinta-2);border-radius:2px;background:var(--hoja);
+}
+.op small{display:block;font-weight:400;font-size:.8125rem;color:var(--tinta-2);margin-top:.125rem}
+.op input:checked + label{border-color:var(--cobre);background:var(--cobre-suave)}
+.op input:checked + label::before{background:var(--cobre);border-color:var(--cobre);box-shadow:inset 0 0 0 3px var(--hoja)}
+.op input:focus-visible + label{outline:3px solid var(--tinta);outline-offset:2px}
+
+.aviso{margin:0;padding:.875rem 1rem 0;color:var(--falta);font-weight:500}
+.nav{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.75rem;padding:1rem}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;text-align:center;
+  font:inherit;font-weight:700;line-height:1.2;text-decoration:none;
+  min-height:3rem;padding:.75rem 1.25rem;
+  border:1.5px solid var(--tinta);border-radius:3px;
+  background:transparent;color:var(--tinta);cursor:pointer;
+}
+.btn.principal{background:var(--cobre);border-color:var(--cobre);color:var(--sobre-cobre)}
+.btn.enlace{border-color:transparent;font-weight:500;text-decoration:underline;text-underline-offset:.15em;padding-left:.25rem;padding-right:.25rem}
+.btn.chico{min-height:2.25rem;padding:.375rem .75rem;font-size:.875rem}
+
+/* Resultado */
+.sello{
+  align-self:flex-start;max-width:100%;
+  font-family:var(--display);font-weight:800;text-transform:uppercase;
+  font-size:clamp(2.5rem,12vw,3.75rem);line-height:.92;letter-spacing:.03em;
+  margin:.625rem 0 .375rem;padding:.5rem .875rem .375rem;
+  border:3px solid currentColor;border-radius:6px;
+  box-shadow:inset 0 0 0 3px var(--hoja),inset 0 0 0 4.5px currentColor;
+  transform:rotate(-3deg);
+  animation:sellar .38s cubic-bezier(.2,.9,.3,1.2) both;
+}
+.sello.listo{color:var(--ok)}
+.sello.poco{color:var(--ojo)}
+.sello.todavia{color:var(--falta)}
+@keyframes sellar{
+  0%{transform:rotate(-3deg) scale(1.3);opacity:.3}
+  60%{transform:rotate(-3deg) scale(.97);opacity:1}
+  100%{transform:rotate(-3deg) scale(1);opacity:1}
+}
+.puntaje{margin:0;display:flex;flex-wrap:wrap;gap:0 1.25rem;font-family:var(--mono);font-size:.875rem;font-variant-numeric:tabular-nums;color:var(--tinta-2)}
+.puntaje span{white-space:nowrap}
+.puntaje strong{color:var(--tinta);font-weight:500}
+.frase{margin:0;font-size:1.0625rem}
+
+.bloque{padding:1.125rem 1rem;border-bottom:1px solid var(--linea);display:flex;flex-direction:column;gap:.75rem}
+.bloque:last-child{border-bottom:0}
+.titulo-3{font-family:var(--display);font-weight:700;text-transform:uppercase;font-size:1.625rem;line-height:1;letter-spacing:.02em;margin:0}
+
+.areas{display:flex;flex-direction:column;gap:.75rem}
+.area{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:.25rem .75rem}
+.area-n{font-weight:500}
+.area-v{font-family:var(--mono);font-size:.8125rem;font-variant-numeric:tabular-nums;color:var(--tinta-2)}
+.cuadros{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:4px}
+.c{flex:none;width:1.625rem;height:.75rem;border:1.5px solid var(--tinta-2);border-radius:2px}
+.c.ok{background:var(--ok);border-color:var(--ok)}
+.c.duda{border-color:var(--ojo);background:repeating-linear-gradient(135deg,var(--ojo) 0 2px,transparent 2px 5px)}
+.c.falta{
+  border-color:var(--falta);
+  background:
+    linear-gradient(to top right,transparent 42%,var(--falta) 42% 58%,transparent 58%),
+    linear-gradient(to bottom right,transparent 42%,var(--falta) 42% 58%,transparent 58%);
+}
+.leyenda{margin:0;display:flex;flex-wrap:wrap;gap:.25rem 1rem;font-size:.8125rem;color:var(--tinta-2)}
+.leyenda span{display:inline-flex;align-items:center;gap:.375rem}
+
+.pendientes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.75rem;counter-reset:p}
+.pend{
+  counter-increment:p;
+  display:flex;flex-direction:column;gap:.375rem;
+  padding:.875rem .875rem .875rem 1rem;
+  background:var(--papel);border:1px solid var(--linea);border-left:5px solid var(--falta);border-radius:3px;
+}
+.pend.duda{border-left-color:var(--ojo)}
+.pend-cab{display:flex;flex-wrap:wrap;align-items:center;gap:.375rem .5rem}
+.pend-cab::before{content:counter(p,decimal-leading-zero);font-family:var(--mono);font-size:.8125rem;color:var(--tinta-2)}
+.pill{font-size:.75rem;font-weight:700;line-height:1.5;padding:.0625rem .5rem;border-radius:999px;border:1px solid transparent}
+.pill.falta{background:var(--falta-suave);color:var(--falta)}
+.pill.duda{background:var(--ojo-suave);color:var(--ojo)}
+.pill.clave{border-color:var(--tinta);color:var(--tinta)}
+.pend .ref{font-size:.6875rem;color:var(--tinta-2);margin-top:.125rem}
+.pend h4{margin:0;font-size:1.0625rem;line-height:1.3;font-weight:700}
+.pend p{margin:0;font-size:.9375rem}
+
+.tenes{list-style:none;margin:0;padding:0;display:grid;gap:.375rem 1rem;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr))}
+.tenes li{display:flex;align-items:baseline;gap:.5rem}
+.tenes li::before{content:"\2713";color:var(--ok);font-weight:700}
+
+.notas{margin:0;padding-left:1.125rem;display:flex;flex-direction:column;gap:.375rem;font-size:.9375rem}
+
+.acciones{display:grid;grid-template-columns:1fr 1fr;gap:.625rem}
+.acciones .ancho{grid-column:1 / -1}
+.acciones .aviso{padding:0;color:var(--tinta)}
+.manual{width:100%;font:inherit;font-size:.9375rem;padding:.625rem;border:1.5px solid var(--linea);border-radius:3px;background:var(--papel);color:var(--tinta)}
+.chica{margin:0;font-size:.875rem;color:var(--tinta-2)}
+
+/* Contexto y pie */
+.contexto{display:flex;flex-direction:column;gap:1rem}
+.cifras{display:grid;gap:1.25rem;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr))}
+.cifra-caja{border-top:3px solid var(--tinta);padding-top:.625rem;display:flex;flex-direction:column;gap:.375rem}
+.cifra{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:3.25rem;line-height:.9;color:var(--cobre);margin:0;font-variant-numeric:tabular-nums}
+.cifra-caja p{margin:0}
+
+.pie{border-top:1px solid var(--linea);padding-top:1.25rem;display:flex;flex-direction:column;gap:.75rem;font-size:.875rem;color:var(--tinta-2)}
+.pie p{margin:0;max-width:34rem}
+.pie strong{color:var(--tinta)}
+.pie ul{margin:0;padding-left:1.125rem;display:flex;flex-direction:column;gap:.25rem}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important;scroll-behavior:auto !important}
+}
+</style>
+</head>
+<body>
+<div class="pagina">
+
+  <header class="tira">
+    <span class="rotulo marca">Minero San Juan</span>
+    <span class="rotulo chip">Prototipo</span>
+  </header>
+
+  <section class="hero">
+    <p class="rotulo ceja">Ley 2827-M · REPROMIN · San Juan</p>
+    <h1>¿Estás listo para ser <em>proveedor minero</em>?</h1>
+    <p class="bajada">Contestá unas 20 preguntas cortas y te mostramos qué te falta para anotarte en el registro oficial de proveedores mineros y para que una minera te pueda contratar.</p>
+    <ul class="datos">
+      <li>4 minutos</li>
+      <li>Gratis</li>
+      <li>Sin registrarte</li>
+    </ul>
+  </section>
+
+  <main id="verificador" class="hoja">
+    <noscript><p class="bloque">Este verificador necesita JavaScript para funcionar.</p></noscript>
+  </main>
+
+  <section class="contexto" aria-labelledby="h-contexto">
+    <h2 class="titulo-2" id="h-contexto">Por qué conviene revisarlo ahora</h2>
+    <div class="cifras">
+      <div class="cifra-caja">
+        <p class="cifra">60 %</p>
+        <p>Es la meta de compras locales que la ley les fija a las mineras. Solo cuenta lo que le compran a proveedores inscriptos en el REPROMIN, el registro oficial.</p>
+      </div>
+      <div class="cifra-caja">
+        <p class="cifra">+500</p>
+        <p>Pymes se postularon a la ronda de negocios de Vicuña en julio de 2026. Muchas quedaron afuera por papeles, como no estar en ARCA o en la plataforma de la minera.</p>
+      </div>
+      <div class="cifra-caja">
+        <p class="cifra">Dic. 2026</p>
+        <p>Es cuando el Gobierno apunta a tener el registro funcionando. Al 15 de noviembre no había fecha publicada para anotarse: conviene llegar con todo listo.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="pie">
+    <p><strong>Minero San Juan es un proyecto independiente.</strong> No es el REPROMIN ni un sitio del Gobierno de San Juan. El resultado es una orientación: el certificado de proveedor local lo emite el Ministerio de Minería.</p>
+    <p>Información al 15 de noviembre de 2026. A esa fecha no encontramos publicada la reglamentación de la ley ni la fecha de inscripción, así que algunos requisitos pueden cambiar. Tus respuestas no se envían a ningún lado: quedan guardadas solo en este teléfono o computadora.</p>
+    <p class="rotulo">Fuentes</p>
+    <ul>
+      <li><a href="https://minio.legsanjuan.gob.ar/normasconsolidaciones/79207/LP-2827-M.pdf" target="_blank" rel="noopener noreferrer">Ley 2827-M, texto oficial (Legislatura de San Juan)</a></li>
+      <li><a href="https://www.tiempodesanjuan.com/mineria/record-por-vicuna-500-pymes-pelearon-por-un-lugar-en-la-ronda-de-negocios-de-san-juan_1783979103" target="_blank" rel="noopener noreferrer">Ronda de negocios de Vicuña (Tiempo de San Juan)</a></li>
+      <li><a href="https://www.diariohuarpe.com/nota/el-registro-de-proveedores-mineros-estara-listo-en-diciembre-202610169550" target="_blank" rel="noopener noreferrer">Plazo del registro (Diario Huarpe)</a></li>
+      <li><a href="https://delsurdiario.com/economia/san-juan-licita-el-repromin-y-apunta-a-tener-el-sistema-listo-en-diciembre" target="_blank" rel="noopener noreferrer">Licitación del REPROMIN (Del Sur Diario)</a></li>
+      <li><a href="https://comunicacionesmineras.com/noticias/los-azules-y-el-grupo-petersen-se-alian-para-que-los-proveedores-crezcan-junto-con-el-proyecto" target="_blank" rel="noopener noreferrer">Convenio de Los Azules, Banco San Juan y Grupo Petersen (Comunicaciones Mineras)</a></li>
+    </ul>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var LS = 'msj-verificador-v1';
+
+  var PASOS = [
+    { n: 'Tu empresa', intro: 'Tres datos para saber qué reglas te tocan.' },
+    { n: 'Papeles básicos', intro: 'Lo primero que mira cualquier minera antes de sentarse a hablar.' },
+    { n: 'Arraigo local', intro: 'Lo que pide la Ley 2827-M para anotarte como proveedor local.' },
+    { n: 'Lo que pide la minera', intro: 'Esto no sale de la ley: es lo que suelen pedir antes de contratar. Confirmalo con cada minera.' },
+    { n: 'Para vender', intro: 'Lo que te ayuda a llegar con una oferta que les sirva.' }
+  ];
+
+  var AREAS = [
+    { id: 'papeles', n: 'Papeles básicos' },
+    { id: 'arraigo', n: 'Arraigo local' },
+    { id: 'minera', n: 'Requisitos de la minera' },
+    { id: 'venta', n: 'Para vender' }
+  ];
+
+  var SI_NO = [['si', 'Sí'], ['no', 'No']];
+  var SI_NO_NS = [['si', 'Sí'], ['no', 'No'], ['ns', 'No sé']];
+
+  function sn(v) { return v === 'si' ? 'ok' : (v === 'no' ? 'falta' : 'duda'); }
+
+  var VICUNA = 'En la ronda de Vicuña de julio de 2026 quedaron afuera empresas que no figuraban en Achilles.';
+  var CONVENIO = 'En noviembre de 2026, Los Azules, Banco San Juan y Grupo Petersen anunciaron un convenio con financiamiento, garantías y capacitación para empresas locales.';
+
+  var PREGUNTAS = [
+    {
+      id: 'base', paso: 0, area: 'arraigo', clave: true, tag: 'Art. 12 y 14',
+      t: '¿Dónde tiene su base tu empresa?',
+      ayuda: 'La base es el local, taller u oficina desde donde trabajás.',
+      ops: [
+        ['comunidad', 'En el departamento del proyecto minero', 'Por ejemplo Iglesia, Jáchal o Calingasta'],
+        ['provincia', 'En otro departamento de San Juan'],
+        ['fuera', 'Fuera de San Juan']
+      ],
+      ev: function (v) { return v === 'fuera' ? 'falta' : 'ok'; },
+      fondo: function (v) { return v === 'fuera'; },
+      ok: 'Empresa con base en San Juan',
+      guia: {
+        falta: ['Tu empresa no tiene base en San Juan', 'El registro es para empresas instaladas en la provincia. Tenés dos caminos: instalarte en San Juan y juntar 12 meses de antigüedad, o asociarte con un proveedor local. La ley admite asociaciones con al menos 25 % de participación local (art. 14).']
+      }
+    },
+    {
+      id: 'tipo', paso: 0, area: 'papeles', clave: true, tag: 'Básico',
+      t: '¿Cómo está armada?',
+      ops: [
+        ['unipersonal', 'Trabajo por mi cuenta', 'Monotributo o responsable inscripto'],
+        ['sociedad', 'Es una sociedad', 'SRL, SAS, SA u otra'],
+        ['sin', 'Todavía no la formalicé']
+      ],
+      ev: function (v) { return v === 'sin' ? 'falta' : 'ok'; },
+      ok: 'Empresa formalizada',
+      guia: {
+        falta: ['Formalizá la empresa', 'Sin CUIT ni inscripción no podés facturarle a una minera ni anotarte en el registro. Un contador te dice si te conviene arrancar por tu cuenta o armar una sociedad.']
+      }
+    },
+    {
+      id: 'rubro', paso: 0,
+      t: '¿Qué le ofrecerías a una minera?',
+      ops: [
+        ['servicios', 'Servicios', 'Transporte, mantenimiento, comida, alquiler de equipos y otros'],
+        ['industria', 'Productos que fabrico'],
+        ['comercio', 'Productos que revendo'],
+        ['construccion', 'Obras y construcción']
+      ]
+    },
+    {
+      id: 'arca', paso: 1, area: 'papeles', clave: true, tag: 'Filtro en rondas',
+      t: '¿Estás inscripto en ARCA (la ex AFIP) con la actividad que querés ofrecer?',
+      ayuda: 'En la ronda de negocios de Vicuña de julio de 2026 hubo empresas que quedaron afuera por no estar inscriptas.',
+      ops: SI_NO_NS, ev: sn,
+      ok: 'Inscripción en ARCA',
+      guia: {
+        falta: ['Inscribite en ARCA con la actividad correcta', 'Es un trámite por internet con clave fiscal. Fijate que la actividad declarada coincida con lo que le vas a ofrecer a la minera.'],
+        duda: ['Confirmá tu inscripción en ARCA', 'Entrá con tu clave fiscal o preguntale a tu contador si estás inscripto y con qué actividad. Tiene que coincidir con lo que vas a ofrecer.']
+      }
+    },
+    {
+      id: 'domicilio', paso: 1, area: 'papeles', clave: true, tag: 'Art. 12 inc. 2',
+      t: '¿El domicilio legal y el fiscal de la empresa están en San Juan?',
+      ops: SI_NO_NS, ev: sn,
+      ok: 'Domicilio legal y fiscal en San Juan',
+      guia: {
+        falta: ['Pasá el domicilio legal y el fiscal a San Juan', 'La ley pide los dos en la provincia. Revisá con tu contador que figure San Juan en ARCA y en Rentas (fiscal) y en la inscripción o el estatuto de la empresa (legal).'],
+        duda: ['Revisá dónde figura tu domicilio', 'La ley pide el domicilio legal y el fiscal en la provincia. Miralo con tu contador en ARCA, en Rentas y en la inscripción o el estatuto de la empresa.']
+      }
+    },
+    {
+      id: 'establecimiento', paso: 1, area: 'papeles', clave: true, tag: 'Art. 12 inc. 1',
+      t: '¿Tenés un local, taller, depósito u oficina en San Juan habilitado a nombre de la empresa?',
+      ops: [['si', 'Sí'], ['tramite', 'Está en trámite'], ['no', 'No']],
+      ev: function (v) { return v === 'si' ? 'ok' : (v === 'tramite' ? 'duda' : 'falta'); },
+      ok: 'Establecimiento habilitado',
+      guia: {
+        falta: ['Habilitá un establecimiento a nombre de la empresa', 'La ley pide un establecimiento operativo en San Juan, habilitado a nombre del proveedor. La habilitación se tramita en la municipalidad donde está el local.'],
+        duda: ['Terminá la habilitación del establecimiento', 'La ley pide que esté habilitado a nombre del proveedor. Seguí el trámite en la municipalidad y guardá la constancia.']
+      }
+    },
+    {
+      id: 'impuestos', paso: 1, area: 'papeles', clave: true, tag: 'Habitual',
+      t: '¿Tenés al día los impuestos provinciales y las tasas municipales?',
+      ops: SI_NO_NS, ev: sn,
+      ok: 'Impuestos y tasas al día',
+      guia: {
+        falta: ['Poné al día impuestos y tasas', 'Pedí el estado de deuda en Rentas y en tu municipalidad y consultá por un plan de pagos. A los proveedores de la comunidad del proyecto, la ley les pide las tasas municipales regularizadas (art. 12 inc. 7).'],
+        duda: ['Pedí tu estado de deuda', 'Consultalo en Rentas y en tu municipalidad antes de anotarte. A los proveedores de la comunidad del proyecto, la ley les pide las tasas municipales regularizadas (art. 12 inc. 7).']
+      }
+    },
+    {
+      id: 'antiguedad', paso: 2, area: 'arraigo', clave: true, tag: 'Art. 12',
+      t: '¿Hace cuánto que la empresa está instalada en San Juan, con domicilio y establecimiento?',
+      ops: [['menos12', 'Menos de 12 meses'], ['e12a24', 'Entre 12 y 24 meses'], ['mas24', 'Más de 24 meses']],
+      ev: function (v) { return v === 'menos12' ? 'falta' : 'ok'; },
+      fondo: function (v) { return v === 'menos12'; },
+      nota: function (v, r) {
+        return (r.base === 'comunidad' && v === 'e12a24')
+          ? 'Con 12 a 24 meses cumplís el plazo de proveedor provincial. Para figurar como proveedor de la comunidad del proyecto, la ley pide 24 meses.'
+          : null;
+      },
+      ok: 'Antigüedad en San Juan',
+      guia: {
+        falta: ['Todavía no llegás a la antigüedad que pide la ley', 'Hacen falta 12 meses instalado en la provincia, y 24 para la categoría de proveedor de la comunidad. No se puede apurar: usá ese tiempo para dejar listo lo demás, o trabajá como subcontratista de un proveedor que ya esté inscripto.']
+      }
+    },
+    {
+      id: 'capital', paso: 2, area: 'arraigo', clave: true, tag: 'Art. 12 inc. 3',
+      si: function (r) { return r.tipo === 'sociedad'; },
+      t: '¿Al menos el 51 % de la sociedad es de personas con domicilio en San Juan?',
+      ops: SI_NO_NS, ev: sn,
+      fondo: function (v) { return v === 'no'; },
+      ok: 'Mayoría de capital local',
+      guia: {
+        falta: ['La mayoría de la sociedad no es local', 'Para entrar como proveedor local, al menos el 51 % del capital o de los votos tiene que ser de personas con domicilio legal y fiscal en San Juan. Si no llegás, la ley admite asociaciones con al menos 25 % de participación local (art. 14). Consultalo con tu abogado.'],
+        duda: ['Averiguá cómo está repartida la sociedad', 'La ley pide que al menos el 51 % del capital o de los votos sea de personas con domicilio legal y fiscal en San Juan. Miralo en el estatuto o preguntale a tu contador.']
+      }
+    },
+    {
+      id: 'personal', paso: 2, area: 'arraigo', clave: true, tag: 'Art. 12 inc. 4',
+      t: '¿Al menos el 80 % de tu personal vive en San Juan?',
+      ayuda: 'La ley lo mide sobre la gente que trabaja en tus contratos mineros. Cuenta quien tiene domicilio en San Juan en el DNI y vive acá hace 12 meses o más (24 si es de la comunidad del proyecto).',
+      ops: [['si', 'Sí'], ['no', 'No'], ['ns', 'No sé'], ['sinemp', 'No tengo empleados']],
+      ev: function (v) { return v === 'sinemp' ? 'na' : sn(v); },
+      ok: '80 % de personal local',
+      guia: {
+        falta: ['Menos del 80 % de tu personal es de San Juan', 'La ley pide que al menos el 80 % de la gente de tus contratos mineros sea local. Planificá las próximas incorporaciones con personal de la provincia.'],
+        duda: ['Sacá la cuenta de tu personal local', 'Contá cuántos de tus empleados tienen domicilio en San Juan en el DNI y viven acá hace 12 meses o más. La ley pide al menos el 80 % en los contratos mineros.']
+      }
+    },
+    {
+      id: 'vehiculos', paso: 2, area: 'arraigo', clave: true, tag: 'Art. 12 inc. 5',
+      t: '¿Los vehículos que usarías para la mina están radicados en San Juan?',
+      ayuda: 'Radicados quiere decir que pagan la patente en San Juan. Cuentan también los que le contrates a un tercero.',
+      ops: [['si', 'Sí'], ['no', 'No'], ['nouso', 'No uso vehículos']],
+      ev: function (v) { return v === 'nouso' ? 'na' : sn(v); },
+      ok: 'Vehículos radicados en San Juan',
+      guia: {
+        falta: ['Radicá los vehículos en San Juan', 'Los vehículos que trabajen para proyectos mineros tienen que estar registrados en la provincia y pagar acá el impuesto automotor, incluidos los que contrates a terceros. El cambio de radicación se hace en el Registro del Automotor.']
+      }
+    },
+    {
+      id: 'constructores', paso: 2, area: 'arraigo', clave: true, tag: 'Art. 13 inc. 4',
+      si: function (r) { return r.rubro === 'construccion'; },
+      t: '¿Estás inscripto en el Registro Provincial de Constructores hace 24 meses o más?',
+      ops: [['si', 'Sí'], ['menos', 'Sí, pero hace menos de 24 meses'], ['no', 'No']],
+      ev: function (v) { return v === 'si' ? 'ok' : 'falta'; },
+      fondo: function (v) { return v === 'menos'; },
+      ok: 'Registro Provincial de Constructores',
+      guia: {
+        falta: ['Te falta la inscripción o la antigüedad como constructora', 'Para figurar como constructora local, la ley pide estar inscripto en el Registro Provincial de Constructores con 24 meses de antigüedad o más.']
+      }
+    },
+    {
+      id: 'plataforma', paso: 3, area: 'minera', clave: true, tag: 'Filtro en rondas',
+      t: '¿Tu empresa está cargada en la plataforma de proveedores de la minera a la que apuntás?',
+      ayuda: 'Cada minera usa la suya. Vicuña, por ejemplo, trabaja con Achilles.',
+      ops: [['si', 'Sí'], ['no', 'No'], ['ns', 'No sé cuál usa']],
+      ev: sn,
+      ok: 'Alta en la plataforma de la minera',
+      guia: {
+        falta: ['Cargá tu empresa en la plataforma de la minera', 'Completá el alta con toda la documentación antes de que salga una convocatoria. ' + VICUNA],
+        duda: ['Averiguá qué plataforma usa la minera', 'Preguntale al área de compras o de proveedores y cargá tu empresa. ' + VICUNA]
+      }
+    },
+    {
+      id: 'seguros', paso: 3, area: 'minera', clave: true, tag: 'Habitual',
+      t: '¿Tenés ART y seguros al día para tu personal, tus vehículos y tus equipos?',
+      ops: [['si', 'Sí'], ['parcial', 'Algunos'], ['no', 'No']],
+      ev: function (v) { return v === 'si' ? 'ok' : (v === 'parcial' ? 'duda' : 'falta'); },
+      ok: 'ART y seguros al día',
+      guia: {
+        falta: ['Contratá ART y seguros', 'Pedile a tu productor de seguros lo que suele exigir una minera: ART, seguro de vida obligatorio, responsabilidad civil y cobertura de vehículos y equipos.'],
+        duda: ['Completá los seguros que te faltan', 'Pedile a tu productor de seguros lo que suele exigir una minera: ART, seguro de vida obligatorio, responsabilidad civil y cobertura de vehículos y equipos.']
+      }
+    },
+    {
+      id: 'hys', paso: 3, area: 'minera', tag: 'Habitual',
+      t: '¿Tenés un responsable de higiene y seguridad y tus procedimientos de trabajo por escrito?',
+      ops: [['si', 'Sí'], ['proceso', 'Lo estoy armando'], ['no', 'No']],
+      ev: function (v) { return v === 'si' ? 'ok' : (v === 'proceso' ? 'duda' : 'falta'); },
+      ok: 'Higiene y seguridad',
+      guia: {
+        falta: ['Armá tu sistema de higiene y seguridad', 'Sumá un profesional matriculado y dejá por escrito cómo trabajás: procedimientos, capacitaciones y elementos de protección. En una mina te lo van a pedir antes de entrar.'],
+        duda: ['Terminá de armar higiene y seguridad', 'Dejá por escrito procedimientos, capacitaciones y elementos de protección, con la firma de un profesional matriculado. En una mina te lo van a pedir antes de entrar.']
+      }
+    },
+    {
+      id: 'certificacion', paso: 3, area: 'minera',
+      t: '¿Tenés alguna certificación de calidad o de gestión?',
+      ayuda: 'Por ejemplo ISO 9001. No siempre es obligatoria, pero suma.',
+      ops: [['si', 'Sí'], ['proceso', 'Está en proceso'], ['no', 'No']],
+      ev: function (v) { return v === 'si' ? 'ok' : (v === 'proceso' ? 'duda' : 'falta'); },
+      ok: 'Certificación de calidad o gestión',
+      guia: {
+        falta: ['Sumá una certificación', 'No siempre es obligatoria, pero ordena la empresa y te distingue de otros oferentes. ISO 9001 es un punto de partida común.'],
+        duda: ['Terminá la certificación en curso', 'Cuando la tengas, sumala a tu presentación y a tu ficha en la plataforma de la minera.']
+      }
+    },
+    {
+      id: 'antecedentes', paso: 3, area: 'minera',
+      t: '¿Podés mostrar trabajos anteriores con referencias a las que se pueda llamar?',
+      ops: SI_NO, ev: sn,
+      ok: 'Antecedentes y referencias',
+      guia: {
+        falta: ['Juntá tus antecedentes', 'Armá una carpeta con trabajos hechos, fotos y dos o tres referencias con nombre y teléfono.']
+      }
+    },
+    {
+      id: 'presentacion', paso: 4, area: 'venta',
+      t: '¿Tenés una presentación de la empresa lista para mandar?',
+      ayuda: 'Una o dos hojas: qué hacés, con qué equipos y para quién trabajaste.',
+      ops: SI_NO, ev: sn,
+      ok: 'Presentación lista para mandar',
+      guia: {
+        falta: ['Armá la presentación de la empresa', 'Una o dos hojas en PDF: qué hacés, con qué equipos, para quién trabajaste y cómo contactarte.']
+      }
+    },
+    {
+      id: 'rubros', paso: 4, area: 'venta',
+      t: '¿Sabés qué está comprando hoy la minera a la que apuntás?',
+      ayuda: 'En la ronda de Vicuña hubo empresas que quedaron afuera por ofrecer servicios que no se pedían.',
+      ops: SI_NO, ev: sn,
+      ok: 'Sabés qué compra la minera',
+      guia: {
+        falta: ['Averiguá qué está comprando la minera', 'Seguí las convocatorias de cada minera y de las cámaras de proveedores. Con la nueva ley, las mineras tienen que avisar las oportunidades de cotización a los inscriptos en el REPROMIN y a las cámaras (art. 10).']
+      }
+    },
+    {
+      id: 'financiamiento', paso: 4, area: 'venta',
+      t: 'Si la minera paga a plazo, ¿podés sostener el trabajo mientras tanto?',
+      ayuda: 'Con capital propio, crédito o una garantía.',
+      ops: SI_NO_NS, ev: sn,
+      ok: 'Respaldo financiero',
+      guia: {
+        falta: ['Buscá respaldo financiero', 'Preguntá en tu banco por líneas para proveedores mineros. ' + CONVENIO],
+        duda: ['Hacé la cuenta de cuánto aguantás', 'Calculá cuántos meses podés pagar sueldos e insumos sin cobrar. Si no alcanza, preguntá en tu banco por líneas para proveedores mineros. ' + CONVENIO]
+      }
+    }
+  ];
+
+  var EJEMPLO = {
+    base: 'provincia', tipo: 'sociedad', rubro: 'servicios',
+    arca: 'si', domicilio: 'si', establecimiento: 'si', impuestos: 'si',
+    antiguedad: 'mas24', capital: 'si', personal: 'si', vehiculos: 'no',
+    plataforma: 'ns', seguros: 'si', hys: 'proceso', certificacion: 'no', antecedentes: 'si',
+    presentacion: 'no', rubros: 'no', financiamiento: 'ns'
+  };
+
+  var SELLOS = { listo: 'Listo para anotarte', poco: 'Te falta poco', todavia: 'Todavía no' };
+
+  var resp = {};
+  var paso = 0;
+  var vista = 'form';
+  var ejemplo = false;
+  var raiz = document.getElementById('verificador');
+
+  function visible(q, r) { return !q.si || q.si(r || resp); }
+
+  function primerSinResponder(r) {
+    r = r || resp;
+    for (var i = 0; i < PREGUNTAS.length; i++) {
+      var q = PREGUNTAS[i];
+      if (visible(q, r) && r[q.id] == null) return q;
+    }
+    return null;
+  }
+
+  /* Cuenta pura: recibe respuestas, devuelve el diagnóstico. */
+  function evaluar(r) {
+    var items = [];
+    PREGUNTAS.forEach(function (q) {
+      if (!q.area || !visible(q, r)) return;
+      var v = r[q.id];
+      if (v == null) return;
+      var e = q.ev(v, r);
+      if (e === 'na') return;
+      var g = e === 'ok' ? null : (q.guia[e] || q.guia.falta);
+      items.push({
+        id: q.id, area: q.area, clave: !!q.clave, estado: e, ok: q.ok, tag: q.tag || '',
+        titulo: g ? g[0] : q.ok, como: g ? g[1] : '',
+        fondo: e !== 'ok' && !!(q.fondo && q.fondo(v, r)),
+        nota: q.nota ? q.nota(v, r) : null
+      });
+    });
+    var cumplidos = items.filter(function (i) { return i.estado === 'ok'; });
+    var clavePend = items.filter(function (i) { return i.clave && i.estado !== 'ok'; });
+    var fondo = clavePend.filter(function (i) { return i.fondo; });
+    var veredicto = clavePend.length === 0 ? 'listo'
+      : (clavePend.length <= 2 && fondo.length === 0 ? 'poco' : 'todavia');
+    var peso = function (i) { return (i.clave ? 0 : 2) + (i.estado === 'falta' ? 0 : 1); };
+    var pendientes = items.filter(function (i) { return i.estado !== 'ok'; })
+      .map(function (i, n) { return { i: i, n: n }; })
+      .sort(function (a, b) { return (peso(a.i) - peso(b.i)) || (a.n - b.n); })
+      .map(function (x) { return x.i; });
+    var areas = AREAS.map(function (a) {
+      var its = items.filter(function (i) { return i.area === a.id; });
+      return { id: a.id, n: a.n, items: its, ok: its.filter(function (i) { return i.estado === 'ok'; }).length };
+    }).filter(function (a) { return a.items.length > 0; });
+    return {
+      items: items, total: items.length, cumplidos: cumplidos.length, tenes: cumplidos,
+      clavePend: clavePend, fondo: fondo, veredicto: veredicto, pendientes: pendientes, areas: areas,
+      notas: items.map(function (i) { return i.nota; }).filter(Boolean)
+    };
+  }
+
+  function fraseVeredicto(R) {
+    var n = R.clavePend.length;
+    if (R.veredicto === 'listo') {
+      return 'Cumplís todos los puntos clave. Cuando el Gobierno habilite la inscripción al REPROMIN, tené los papeles a mano y anotate entre los primeros.';
+    }
+    if (R.veredicto === 'poco') {
+      return 'Estás cerca. Resolvé ' + (n === 1 ? 'el punto clave' : 'los ' + n + ' puntos clave') + ' de abajo y quedás en condiciones de anotarte.';
+    }
+    if (R.fondo.length) {
+      return (R.fondo.length === 1 ? 'Hay un punto de fondo que no se arregla' : 'Hay ' + R.fondo.length + ' puntos de fondo que no se arreglan') + ' con un trámite. Abajo están las alternativas que da la ley.';
+    }
+    return 'Hoy una minera no podría contratarte como proveedor local: tenés ' + n + ' puntos clave pendientes. Resolvelos en el orden de abajo.';
+  }
+
+  function resumen(R) {
+    var l = [
+      'Hice el verificador de proveedor minero de Minero San Juan.',
+      'Resultado: ' + SELLOS[R.veredicto].toUpperCase() + ' (' + R.cumplidos + ' de ' + R.total + ' puntos cumplidos).'
+    ];
+    if (R.pendientes.length) {
+      l.push('Me falta resolver:');
+      R.pendientes.forEach(function (p) { l.push('- ' + p.titulo + (p.clave ? ' (clave)' : '')); });
+    }
+    return l.join('\n');
+  }
+
+  /* Vistas */
+  function bannerEjemplo() {
+    return '<div class="ejemplo"><p><strong>Ejemplo.</strong> Una SRL de servicios de Rawson. No son tus datos.</p>' +
+      '<button type="button" class="btn chico" data-acc="reiniciar">Hacer el mío</button></div>';
+  }
+
+  function htmlPregunta(q, i) {
+    var val = resp[q.id];
+    var cortas = q.ops.every(function (o) { return o[1].length <= 5 && !o[2]; });
+    var ops = q.ops.map(function (o) {
+      var id = 'q-' + q.id + '-' + o[0];
+      return '<div class="op"><input type="radio" name="q-' + q.id + '" id="' + id + '" value="' + o[0] + '"' + (val === o[0] ? ' checked' : '') + '>' +
+        '<label for="' + id + '"><span>' + o[1] + (o[2] ? '<small>' + o[2] + '</small>' : '') + '</span></label></div>';
+    }).join('');
+    return '<div class="pregunta" role="radiogroup" aria-labelledby="t-' + q.id + '" data-q="' + q.id + '">' +
+      '<p class="texto" id="t-' + q.id + '"><span class="num">' + (paso + 1) + '.' + (i + 1) + '</span>' + q.t + '</p>' +
+      (q.ayuda ? '<p class="ayuda">' + q.ayuda + '</p>' : '') +
+      '<div class="ops' + (cortas ? ' cortas' : '') + '">' + ops + '</div></div>';
+  }
+
+  function vistaForm() {
+    var p = PASOS[paso];
+    var qs = PREGUNTAS.filter(function (q) { return q.paso === paso && visible(q); });
+    var barras = PASOS.map(function (_, i) {
+      return '<span class="' + (i < paso ? 'hecho' : (i === paso ? 'actual' : '')) + '"></span>';
+    }).join('');
+    return '<div class="hoja-cab">' + (ejemplo ? bannerEjemplo() : '') +
+      '<div class="progreso" role="img" aria-label="Paso ' + (paso + 1) + ' de ' + PASOS.length + '">' + barras + '</div>' +
+      '<p class="rotulo paso-n">Paso ' + (paso + 1) + ' de ' + PASOS.length + '</p>' +
+      '<h2 class="titulo-2" tabindex="-1" data-foco>' + p.n + '</h2>' +
+      '<p class="intro">' + p.intro + '</p></div>' +
+      '<form id="form" novalidate>' +
+      qs.map(htmlPregunta).join('') +
+      '<p class="aviso" id="aviso" role="alert" hidden></p>' +
+      '<div class="nav">' +
+      (paso > 0
+        ? '<button type="button" class="btn" data-acc="atras">Atrás</button>'
+        : '<button type="button" class="btn enlace" data-acc="ejemplo">Ver un ejemplo</button>') +
+      '<button type="submit" class="btn principal">' + (paso < PASOS.length - 1 ? 'Siguiente' : 'Ver mi resultado') + '</button>' +
+      '</div></form>';
+  }
+
+  var REFS = {
+    'Habitual': 'Lo suelen pedir las mineras',
+    'Filtro en rondas': 'Dejó empresas afuera en rondas de negocios',
+    'Básico': 'Requisito básico'
+  };
+  function refTexto(tag) { return REFS[tag] || ('Ley 2827-M · ' + tag); }
+
+  function htmlPendiente(i) {
+    return '<li class="pend ' + i.estado + '"><div class="pend-cab">' +
+      '<span class="pill ' + i.estado + '">' + (i.estado === 'falta' ? 'Falta' : 'A confirmar') + '</span>' +
+      (i.clave ? '<span class="pill clave">Clave</span>' : '') +
+      '</div><h4>' + i.titulo + '</h4><p>' + i.como + '</p>' +
+      (i.tag ? '<p class="rotulo ref">' + refTexto(i.tag) + '</p>' : '') + '</li>';
+  }
+
+  function vistaResultado() {
+    var R = evaluar(resp);
+    var n = R.clavePend.length;
+    var h = '<div class="hoja-cab">' + (ejemplo ? bannerEjemplo() : '') +
+      '<p class="rotulo paso-n" tabindex="-1" data-foco>Tu resultado</p>' +
+      '<p class="sello ' + R.veredicto + '">' + SELLOS[R.veredicto] + '</p>' +
+      '<p class="puntaje"><span><strong>' + R.cumplidos + ' de ' + R.total + '</strong> puntos cumplidos</span>' +
+      (n ? '<span><strong>' + n + '</strong> ' + (n === 1 ? 'clave pendiente' : 'clave pendientes') + '</span>' : '') + '</p>' +
+      '<p class="frase">' + fraseVeredicto(R) + '</p></div>';
+
+    h += '<div class="bloque"><h3 class="titulo-3">Cómo estás en cada parte</h3><div class="areas">' +
+      R.areas.map(function (a) {
+        return '<div class="area"><span class="area-n">' + a.n + '</span><span class="area-v">' + a.ok + ' de ' + a.items.length + '</span>' +
+          '<span class="cuadros">' + a.items.map(function (i) { return '<i class="c ' + i.estado + '"></i>'; }).join('') + '</span></div>';
+      }).join('') + '</div>' +
+      '<p class="leyenda"><span><i class="c ok"></i>Cumplido</span><span><i class="c duda"></i>A confirmar</span><span><i class="c falta"></i>Falta</span></p></div>';
+
+    if (R.pendientes.length) {
+      h += '<div class="bloque"><h3 class="titulo-3">Qué resolver primero</h3>' +
+        '<ol class="pendientes">' + R.pendientes.map(htmlPendiente).join('') + '</ol></div>';
+    }
+    if (R.tenes.length) {
+      h += '<div class="bloque"><h3 class="titulo-3">Lo que ya tenés</h3><ul class="tenes">' +
+        R.tenes.map(function (i) { return '<li>' + i.ok + '</li>'; }).join('') + '</ul></div>';
+    }
+
+    h += '<div class="bloque"><h3 class="titulo-3">Lo que todavía no se sabe</h3><ul class="notas">' +
+      R.notas.map(function (t) { return '<li>' + t + '</li>'; }).join('') +
+      '<li>Falta la reglamentación de la ley. Ahí se va a definir, entre otras cosas, cómo aplica a las empresas chicas el plan de desarrollo de proveedores que menciona el art. 12 inc. 6.</li>' +
+      '<li>El Gobierno todavía no publicó la fecha para anotarse en el REPROMIN.</li></ul></div>';
+
+    h += '<div class="bloque acciones">' +
+      '<a class="btn principal ancho" target="_blank" rel="noopener noreferrer" href="https://wa.me/?text=' + encodeURIComponent(resumen(R)) + '">Mandar mi resultado por WhatsApp</a>' +
+      '<button type="button" class="btn" data-acc="copiar">Copiar resultado</button>' +
+      '<button type="button" class="btn" data-acc="editar">Cambiar respuestas</button>' +
+      '<button type="button" class="btn enlace ancho" data-acc="reiniciar">Empezar de nuevo</button>' +
+      '<p class="aviso ancho" id="copiado" role="status" hidden></p>' +
+      '<textarea class="manual ancho" id="manual" rows="6" readonly hidden aria-label="Resultado para copiar"></textarea>' +
+      '<p class="chica ancho">Es una orientación, no un certificado. Antes de decidir, revisalo con tu contador.</p></div>';
+    return h;
+  }
+
+  /* Estado que se conserva */
+  function estado() { return { a: resp, p: paso, v: vista, e: ejemplo }; }
+  function guardar() { try { localStorage.setItem(LS, JSON.stringify(estado())); } catch (err) { /* sin almacenamiento: sigue igual */ } }
+  function leer() { try { var s = localStorage.getItem(LS); return s ? JSON.parse(s) : null; } catch (err) { return null; } }
+  function aplicar(d) {
+    if (!d || typeof d !== 'object' || !d.a || typeof d.a !== 'object') return;
+    var limpio = {};
+    PREGUNTAS.forEach(function (q) {
+      var v = d.a[q.id];
+      if (typeof v === 'string' && q.ops.some(function (o) { return o[0] === v; })) limpio[q.id] = v;
+    });
+    resp = limpio;
+    paso = Math.min(Math.max(parseInt(d.p, 10) || 0, 0), PASOS.length - 1);
+    ejemplo = !!d.e;
+    vista = (d.v === 'resultado' && !primerSinResponder()) ? 'resultado' : 'form';
+  }
+
+  function pintar(mover) {
+    raiz.innerHTML = vista === 'resultado' ? vistaResultado() : vistaForm();
+    guardar();
+    if (mover) {
+      raiz.scrollIntoView({ block: 'start' });
+      var foco = raiz.querySelector('[data-foco]');
+      if (foco) { try { foco.focus({ preventScroll: true }); } catch (err) { /* sin foco programático */ } }
+    }
+  }
+
+  function marcarFaltantes(faltan) {
+    faltan.forEach(function (q) {
+      var caja = raiz.querySelector('[data-q="' + q.id + '"]');
+      if (caja) caja.classList.add('sin');
+    });
+    var av = document.getElementById('aviso');
+    if (av) {
+      av.textContent = faltan.length === 1 ? 'Te falta responder una pregunta de este paso.' : 'Te falta responder ' + faltan.length + ' preguntas de este paso.';
+      av.hidden = false;
+    }
+    var primera = raiz.querySelector('.pregunta.sin');
+    if (primera) primera.scrollIntoView({ block: 'center' });
+  }
+
+  function copiar() {
+    var txt = resumen(evaluar(resp));
+    var ok = document.getElementById('copiado');
+    var man = document.getElementById('manual');
+    function listo() { ok.textContent = 'Resultado copiado. Pegalo donde quieras.'; ok.hidden = false; }
+    function aMano() {
+      man.value = txt; man.hidden = false;
+      ok.textContent = 'No lo pudimos copiar solos. Mantené apretado el texto de abajo y elegí Copiar.'; ok.hidden = false;
+      try { man.focus(); man.select(); } catch (err) { /* queda visible para copiar a mano */ }
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt).then(listo, aMano); }
+      else { aMano(); }
+    } catch (err) { aMano(); }
+  }
+
+  raiz.addEventListener('change', function (e) {
+    var t = e.target;
+    if (!t || t.type !== 'radio') return;
+    resp[t.name.slice(2)] = t.value;
+    var caja = t.closest('.pregunta');
+    if (caja) caja.classList.remove('sin');
+    var av = document.getElementById('aviso');
+    if (av && !raiz.querySelector('.pregunta.sin')) av.hidden = true;
+    guardar();
+  });
+
+  raiz.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var faltan = PREGUNTAS.filter(function (q) { return q.paso === paso && visible(q) && resp[q.id] == null; });
+    if (faltan.length) { marcarFaltantes(faltan); return; }
+    if (paso < PASOS.length - 1) { paso += 1; pintar(true); return; }
+    var pendiente = primerSinResponder();
+    if (pendiente) {
+      paso = pendiente.paso; pintar(true);
+      marcarFaltantes(PREGUNTAS.filter(function (q) { return q.paso === paso && visible(q) && resp[q.id] == null; }));
+      return;
+    }
+    vista = 'resultado';
+    pintar(true);
+  });
+
+  raiz.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('[data-acc]') : null;
+    if (!b) return;
+    var acc = b.getAttribute('data-acc');
+    if (acc === 'atras') { paso = Math.max(0, paso - 1); pintar(true); }
+    else if (acc === 'ejemplo') {
+      resp = {}; Object.keys(EJEMPLO).forEach(function (k) { resp[k] = EJEMPLO[k]; });
+      ejemplo = true; vista = 'resultado'; pintar(true);
+    }
+    else if (acc === 'editar') { vista = 'form'; paso = 0; pintar(true); }
+    else if (acc === 'reiniciar') { resp = {}; ejemplo = false; vista = 'form'; paso = 0; pintar(true); }
+    else if (acc === 'copiar') { copiar(); }
+  });
+
+  /* Para una prueba puntual de la cuenta. */
+  window.__msj = { evaluar: evaluar, EJEMPLO: EJEMPLO };
+
+  function arrancar(dato) {
+    aplicar(dato && dato.a ? dato : leer());
+    pintar(false);
+  }
+  var hot = window.claude && window.claude.hot;
+  if (hot && hot.snapshot) hot.snapshot(estado);
+  if (hot && hot.ready) hot.ready(arrancar);
+  else arrancar((hot && hot.data) || {});
+})();
+</script>
+</body>
+</html>
